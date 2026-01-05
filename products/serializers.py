@@ -18,10 +18,13 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer): 
+    category = serializers.SerializerMethodField()
     class Meta:
         model = Product
         fields = 'id title price category'.split()
        
+    def get_category(self, product):
+        return product.category.name
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
