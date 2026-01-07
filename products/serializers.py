@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from products.models import Product, Category, Review
+from rest_framework.exceptions import ValidationError
 
 
 
@@ -60,3 +61,33 @@ class ProductReviewSerializer(serializers.ModelSerializer):
             return rating
         else:
             return 0
+
+
+class CategoryValidateSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True, min_length=2, max_length=255)
+
+
+class ProductValidateSerializer(serializers.Serializer):
+    title = serializers.CharField(required=True, min_length=2, max_length=255)
+    description = serializers.CharField(required=True)
+    price = serializers.DecimalField(max_digits=8,decimal_places=2)
+    category_id = serializers.IntegerField()
+
+    def validate_category_id(self, category_id):
+        try:
+            Category.objects.get(id=category_id)
+        except Category.DoesNotExist:
+            raise ValidationError('Category does not exist!')
+        return category_id
+    
+class ReviewValidateSerializer(serializers.Serializer):
+    stars = serializers.IntegerField(min_value=1, max_value=5, default=4)
+    text = serializers.CharField(required=False, min_length=2, max_length=1000)
+    product_id = serializers.IntegerField()
+
+    def validate_product_id(self, product_id):
+        try:
+            Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            raise ValidationError('Product does not exist!')
+        return product_id
