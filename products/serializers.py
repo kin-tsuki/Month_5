@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 
 class CategorySerializer(serializers.ModelSerializer):
     products_count = serializers.SerializerMethodField()
+    name = serializers.CharField(required=True, min_length=2, max_length=255)
     class Meta:
         model = Category
         fields = 'id name products_count'.split()
@@ -19,6 +20,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer): 
+    title = serializers.CharField(required=True, min_length=2, max_length=255)
     category = serializers.SerializerMethodField()
     class Meta:
         model = Product
@@ -28,9 +30,11 @@ class ProductListSerializer(serializers.ModelSerializer):
         return product.category.name
 
 class ProductDetailSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(required=True, min_length=2, max_length=255)
     class Meta:
         model = Product
         fields = '__all__'
+        
 
 
 class ReviewListSerializer(serializers.ModelSerializer):
@@ -40,10 +44,11 @@ class ReviewListSerializer(serializers.ModelSerializer):
 
 
 class ReviewDetailSerializer(serializers.ModelSerializer):
+    text = serializers.CharField(required=False, min_length=2, max_length=1000)
     class Meta:
         model = Review
         fields = '__all__'
-
+        
 
 class ProductReviewSerializer(serializers.ModelSerializer):
     reviews = ReviewListSerializer(many=True)

@@ -2,7 +2,66 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status 
 from products.models import Category, Product, Review
-from products.serializers import ReviewValidateSerializer, CategorySerializer, ProductListSerializer, ProductDetailSerializer, ReviewListSerializer, ReviewDetailSerializer, ProductReviewSerializer, CategoryValidateSerializer, ProductValidateSerializer
+from products.serializers import (
+    ReviewValidateSerializer, 
+    CategorySerializer, 
+    ProductListSerializer, 
+    ProductDetailSerializer, 
+    ReviewListSerializer, 
+    ReviewDetailSerializer, 
+    ProductReviewSerializer, 
+    CategoryValidateSerializer,
+    ProductValidateSerializer
+)
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.viewsets import ModelViewSet
+
+
+class ProductListAPIView(ListCreateAPIView):
+    queryset = Product.objects.select_related('category').all()
+    serializer_class = ProductListSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return ProductDetailSerializer
+        return self.serializer_class
+
+class ProductDetailAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductDetailSerializer
+    lookup_field = 'id'
+
+
+class CategoryListAPIView(ListCreateAPIView):
+    queryset = Category.objects.prefetch_related('products').all()
+    serializer_class = CategorySerializer
+
+class CategoryDetailAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.prefetch_related('products').all()
+    serializer_class = CategorySerializer
+    lookup_field = 'id'
+
+
+class ReviewViewSet(ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewDetailSerializer
+    lookup_field = 'id'
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST' or self.request.method == 'PUT':
+            return ReviewValidateSerializer
+        return self.serializer_class
+    
+
+class ProductReviewListAPIView(ListAPIView):
+    queryset = Product.objects.prefetch_related('reviews').all()
+    serializer_class = ProductReviewSerializer
+
+
+
+    
+
+
 
 @api_view(['GET', 'POST'])
 def category_list_api_view(request):
@@ -95,6 +154,7 @@ def product_detail_api_view(request, id):
     elif request.method == 'DELETE':
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 @api_view(['GET', 'POST'])
 def review_list_api_view(request):
